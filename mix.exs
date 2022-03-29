@@ -6,9 +6,10 @@ defmodule ElixBndes.MixProject do
   def project do
     [
       app: :ElixBndes,
-      version:  "#{@version}",
+      version: "#{@version}",
       elixir: "~> 1.12",
-      description: "Library to get information about BNDES card. This is not the official lib from BNDES!",
+      description:
+        "Library to get information about BNDES card. This is not the official lib from BNDES!",
       source_url: "https://github.com/joao2391/elixbndes",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -39,9 +40,8 @@ defmodule ElixBndes.MixProject do
       maintainers: ["Joao Paulo de C. Lima"],
       licenses: ["MIT"],
       links: %{
-        "GitHub" => "https://github.com/joao2391/elixbndes",
+        "GitHub" => "https://github.com/joao2391/elixbndes"
       }
     ]
   end
-
 end

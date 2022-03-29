@@ -1,8 +1,8 @@
-defmodule ElixbndesTest do
+defmodule ElixBndesTest do
   use ExUnit.Case
-  doctest Elixbndes
+  doctest ElixBndes
 
-  test "greets the world" do
-    assert Elixbndes.hello() == :world
+  test "retorna 66 bancos" do
+    assert ElixBndes.get_bancos_credenciados() |> Enum.count == 66
   end
 end
