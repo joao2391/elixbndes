@@ -10,4 +10,8 @@ defmodule ElixBndesTest do
     assert ElixBndes.get_fornecedores_by_nome("Zezinho", 1) |> Enum.count() == 9
   end
 
+  test "retorna 09 fornecedores" do
+    assert ElixBndes.get_fornecedores_by_nome_produto("cimento", 1) |> Enum.count() == 25
+  end
+
 end
