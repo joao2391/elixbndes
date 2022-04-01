@@ -26,4 +26,19 @@ defmodule ElixBndes do
         Logger.error(inspect(reason))
     end
   end
+
+  @doc """
+  Busca os fornecedores cadastrados no BNDES pelo nome.
+  """
+  def get_fornecedores_by_nome(nomeFornecedor, pagina \\ 1) do
+    case HTTPoison.get(
+           "https://www.cartaobndes.gov.br/cartaobndes/Servico/Fornecedores.asp?acao=busca&chr_tiposaida=JSON&fornecedor=#{nomeFornecedor}&pagina=#{pagina}",
+           [{"User-Agent", "elixbndes/1.0.1"}, {"Accept", "*/*"}]
+         ) do
+      {:ok, %{body: raw_body, status_code: _code}} ->
+        retorno = Jason.decode!(raw_body)
+
+        retorno["Catalogo"]
+    end
+  end
 end
