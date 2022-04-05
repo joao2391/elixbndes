@@ -57,5 +57,48 @@ defmodule ElixBndes do
     end
   end
 
+  @doc """
+   Busca os Busca os produtos cadastrados no BNDES pelo nome.
+  """
+  def get_produtos_by_nome(nome_produto, pagina \\ 1) when is_bitstring(nome_produto) do
+    case HTTPoison.post(
+      "https://www.cartaobndes.gov.br/cartaobndes/PaginasCartao/Catalogo.asp?Acao=LP&CTRL=",
+      {:form, [{"chr_PalavraPesquisadaHidden", nome_produto}, {"int_PaginaAtual", pagina}]},
+      %{"Content-Type" => "application/x-www-form-urlencoded", "source" => "elixbndes"}
+      ) do
+        {:ok, %{body: raw_body, status_code: _code}} ->
+          html = raw_body
+
+          {:ok, document} = Floki.parse_document(html)
+
+          #qtde_produtos = get_quantidade_produtos_by_regex(nome_produto)
+          #|> Floki.find("a[id*=cat_anchor]") |> Enum.map(fn {_chave, _valor1, valor2} -> valor2 end)
+          #Floki.find("tr[class=texto1]")
+
+
+          document |> Floki.find("table[class=Tabela1]") |> Floki.find("tr[valign=top")
+      end
+
+  end
+
+  defp get_quantidade_produtos_by_regex(nome_produto) do
+    case HTTPoison.post(
+      "https://www.cartaobndes.gov.br/cartaobndes/PaginasCartao/Catalogo.asp?Acao=RBS&CTRL=",
+      #{:form, [{"chr_PalavraPesquisadaHidden", nome_produto}, {"int_PaginaAtual", pagina}]},
+      {:form, [{"chr_PalavraPesquisadaHidden", nome_produto}, {"chr_PalavraPesquisada", nome_produto}]},
+      %{"Content-Type" => "application/x-www-form-urlencoded", "source" => "elixbndes"}
+      ) do
+        {:ok, %{body: raw_body, status_code: _code}} ->
+          html = raw_body
+
+          {:ok, document} = Floki.parse_document(html)
+
+          document |> Floki.find("a[id=qtdeprod_anchor5]")  |> Floki.text() |> String.replace(~r/[^\d]/,"") |> String.to_integer()
+
+          #a id="qtdeprod_anchor5" ("table[class=Tabela1]")
+          #String.replace("Foram encontradas 143 refer├¬ncia(s)", ~r/[^\d]/,"") |> String.to_integer()
+      end
+  end
+
 
 end
