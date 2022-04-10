@@ -72,12 +72,44 @@ defmodule ElixBndes do
           {:ok, document} = Floki.parse_document(html)
 
           #qtde_produtos = get_quantidade_produtos_by_regex(nome_produto)
-          #|> Floki.find("a[id*=cat_anchor]") |> Enum.map(fn {_chave, _valor1, valor2} -> valor2 end)
-          #Floki.find("tr[class=texto1]")
 
+          #Checar form do captcha
+          #ElixBndes.get_produtos_by_nome("cimento",1) |> Floki.find("form[id=frmCaptcha]") |> Floki.find("input[value=S]")
+          #Case para validar o form do captcha:
+          #xpto = ElixBndes.get_produtos_by_nome("cimento",1) |> Floki.find("form[id=frmCaptcha]") |> Floki.find("input[value=S]") |> Enum.count()
+          # case 1 do
+          # ^xpto -> "retornavel"
+          # _ -> "retornavel"
+          #end
 
-          document |> Floki.find("table[class=Tabela1]") |> Floki.find("tr[valign=top")
+          tamanho_lista = 10#length(lista_enderecos)
+          lista_produtos = get_produtos(document)
+          lista_fabricantes = get_fornecedores(document)
+
+        for x <- 0..tamanho_lista-1 do
+          produto = lista_produtos |> Enum.at(x)
+          fabricante = lista_fabricantes |> Enum.at(x)
+
+          %{produto: produto, fabricante: fabricante}
+        end
       end
+
+  end
+
+  defp get_produtos(document) do
+
+    document |> Floki.find("table[class=Tabela1]") |> Floki.find("tr[valign=top")
+                   |> Floki.find("a[id*=cat_anchor]")
+                   |> Floki.find("a[onclick^=JavaScript")
+                   |> Enum.map(fn {_chave, _valor1, valor2} -> valor2 |> Floki.text() end)
+  end
+
+  defp get_fornecedores(document) do
+
+    document |> Floki.find("table[class=Tabela1]") |> Floki.find("tr[valign=top")
+                   |> Floki.find("a[id*=cat_anchor]")
+                   |> Floki.find("a[href^=Catalogo]")
+                   |> Enum.map(fn {_chave, _valor1, valor2} -> valor2 |> Floki.text() end)
 
   end
 
