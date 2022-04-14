@@ -39,6 +39,9 @@ defmodule ElixBndes do
         retorno = Jason.decode!(raw_body)
 
         retorno["Catalogo"]
+
+        {:error, %HTTPoison.Error{reason: reason}} ->
+          Logger.error(inspect(reason))
     end
   end
 
@@ -54,6 +57,9 @@ defmodule ElixBndes do
         retorno = Jason.decode!(raw_body)
 
         retorno["Catalogo"]
+
+        {:error, %HTTPoison.Error{reason: reason}} ->
+          Logger.error(inspect(reason))
     end
   end
 
@@ -82,7 +88,10 @@ defmodule ElixBndes do
           # _ -> "retornavel"
           #end
 
-          tamanho_lista = 10#length(lista_enderecos)
+          valida_captcha(document)
+
+          #length(lista_enderecos)
+          tamanho_lista = 10
           lista_produtos = get_produtos(document)
           lista_fabricantes = get_fornecedores(document)
 
@@ -92,7 +101,25 @@ defmodule ElixBndes do
 
           %{produto: produto, fabricante: fabricante}
         end
+
+        #document
+
+        {:error, %HTTPoison.Error{reason: reason}} ->
+          Logger.error(inspect(reason))
       end
+
+  end
+
+  defp valida_captcha(document) do
+    is_on = document
+              |> Floki.find("form[id=frmCaptcha]")
+              |> Floki.find("input[value=S]")
+              |> Enum.count()
+
+    case 1 do
+      ^is_on -> Logger.error("captcha ativo")
+      _ -> Logger.info("captcha nao ativo")
+    end
 
   end
 
