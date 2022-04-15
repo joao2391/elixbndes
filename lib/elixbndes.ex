@@ -4,13 +4,15 @@ defmodule ElixBndes do
   """
   require Logger
   alias ElixBndes.Banco
+  @url_bancos_credenciados "https://www.bndes.gov.br/wps/portal/site/home/instituicoes-financeiras-credenciadas/rede-credenciada-brasil"
+  @url_produtos "https://www.cartaobndes.gov.br/cartaobndes/PaginasCartao/Catalogo.asp?Acao=LP&CTRL="
+  @url_produtos_regex "https://www.cartaobndes.gov.br/cartaobndes/PaginasCartao/Catalogo.asp?Acao=RBS&CTRL="
 
   @doc """
   Busca os bancos credenciados.
   """
   def get_bancos_credenciados() do
-    case HTTPoison.get(
-           "https://www.bndes.gov.br/wps/portal/site/home/instituicoes-financeiras-credenciadas/rede-credenciada-brasil",
+    case HTTPoison.get(@url_bancos_credenciados,
            %{"User-Agent" => "elixbndes/1.0.1"}
          ) do
       {:ok, %{body: raw_body, status_code: _code}} ->
@@ -67,8 +69,7 @@ defmodule ElixBndes do
    Busca os Busca os produtos cadastrados no BNDES pelo nome.
   """
   def get_produtos_by_nome(nome_produto, pagina \\ 1) when is_bitstring(nome_produto) do
-    case HTTPoison.post(
-      "https://www.cartaobndes.gov.br/cartaobndes/PaginasCartao/Catalogo.asp?Acao=LP&CTRL=",
+    case HTTPoison.post(@url_produtos,
       {:form, [{"chr_PalavraPesquisadaHidden", nome_produto}, {"int_PaginaAtual", pagina}]},
       %{"Content-Type" => "application/x-www-form-urlencoded", "source" => "elixbndes"}
       ) do
@@ -77,30 +78,22 @@ defmodule ElixBndes do
 
           {:ok, document} = Floki.parse_document(html)
 
-          #qtde_produtos = get_quantidade_produtos_by_regex(nome_produto)
-
-          #Checar form do captcha
-          #ElixBndes.get_produtos_by_nome("cimento",1) |> Floki.find("form[id=frmCaptcha]") |> Floki.find("input[value=S]")
-          #Case para validar o form do captcha:
-          #xpto = ElixBndes.get_produtos_by_nome("cimento",1) |> Floki.find("form[id=frmCaptcha]") |> Floki.find("input[value=S]") |> Enum.count()
-          # case 1 do
-          # ^xpto -> "retornavel"
-          # _ -> "retornavel"
-          #end
-
           valida_captcha(document)
 
-          #length(lista_enderecos)
-          tamanho_lista = 10
+          total_produtos = get_quantidade_produtos_by_regex(nome_produto)
+
           lista_produtos = get_produtos(document)
           lista_fabricantes = get_fornecedores(document)
+          tamanho_lista = length(lista_produtos)
 
-        for x <- 0..tamanho_lista-1 do
+        list_itens = for x <- 0..tamanho_lista-1 do
           produto = lista_produtos |> Enum.at(x)
           fabricante = lista_fabricantes |> Enum.at(x)
 
           %{produto: produto, fabricante: fabricante}
         end
+
+        %{itens: list_itens, total: total_produtos, pagina_atual: pagina, total_paginas: Kernel.round(total_produtos / 10) + 1}
 
         #document
 
@@ -141,9 +134,7 @@ defmodule ElixBndes do
   end
 
   defp get_quantidade_produtos_by_regex(nome_produto) do
-    case HTTPoison.post(
-      "https://www.cartaobndes.gov.br/cartaobndes/PaginasCartao/Catalogo.asp?Acao=RBS&CTRL=",
-      #{:form, [{"chr_PalavraPesquisadaHidden", nome_produto}, {"int_PaginaAtual", pagina}]},
+    case HTTPoison.post(@url_produtos_regex,
       {:form, [{"chr_PalavraPesquisadaHidden", nome_produto}, {"chr_PalavraPesquisada", nome_produto}]},
       %{"Content-Type" => "application/x-www-form-urlencoded", "source" => "elixbndes"}
       ) do
@@ -154,8 +145,8 @@ defmodule ElixBndes do
 
           document |> Floki.find("a[id=qtdeprod_anchor5]")  |> Floki.text() |> String.replace(~r/[^\d]/,"") |> String.to_integer()
 
-          #a id="qtdeprod_anchor5" ("table[class=Tabela1]")
-          #String.replace("Foram encontradas 143 refer├¬ncia(s)", ~r/[^\d]/,"") |> String.to_integer()
+          {:error, %HTTPoison.Error{reason: reason}} ->
+            Logger.error(inspect(reason))
       end
   end
 
