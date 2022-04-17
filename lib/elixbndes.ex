@@ -143,6 +143,8 @@ defmodule ElixBndes do
 
           {:ok, document} = Floki.parse_document(html)
 
+          valida_captcha(document)
+
           document |> Floki.find("a[id=qtdeprod_anchor5]")  |> Floki.text() |> String.replace(~r/[^\d]/,"") |> String.to_integer()
 
           {:error, %HTTPoison.Error{reason: reason}} ->
