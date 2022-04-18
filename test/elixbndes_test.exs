@@ -15,8 +15,7 @@ defmodule ElixBndesTest do
   end
 
   test "retorna 10 itens" do
-    lista = ElixBndes.get_produtos_by_nome("cimento",1)
+    lista = ElixBndes.get_produtos_by_nome("cimento", 1)
     assert lista.itens |> Enum.count() == 10
   end
-
 end
