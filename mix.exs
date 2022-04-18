@@ -5,7 +5,7 @@ defmodule ElixBndes.MixProject do
 
   def project do
     [
-      app: :ElixBndes,
+      app: :elixbndes,
       version: "#{@version}",
       elixir: "~> 1.12",
       description:
